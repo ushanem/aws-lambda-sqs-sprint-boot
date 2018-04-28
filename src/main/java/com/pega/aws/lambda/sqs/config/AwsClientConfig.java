@@ -1,4 +1,4 @@
-package com.mj.aws.lambda.sqs.config;
+package com.pega.aws.lambda.sqs.config;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;

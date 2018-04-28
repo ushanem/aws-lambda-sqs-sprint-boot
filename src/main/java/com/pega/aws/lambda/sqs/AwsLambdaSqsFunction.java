@@ -1,9 +1,13 @@
-package com.mj.aws.lambda.sqs;
+package com.pega.aws.lambda.sqs;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
-import com.mj.aws.lambda.sqs.config.AppConfig;
+import com.pega.aws.lambda.sqs.config.AppConfig;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +25,14 @@ public class AwsLambdaSqsFunction implements Function<Void,Void>{
     @Autowired
     private AmazonSQS amazonSqs;
 
+    private static final Logger log = LoggerFactory.getLogger(AwsLambdaSqsFunction.class);
+    
     @Override
     public Void apply(Void empty) {
 
         String queueUrl = appConfig.getQueueUrl();
 
-        log.info("Retrieved queues: {}",amazonSqs.listQueues().getQueueUrls().toString());
+        log.info("Retrieved queues: {",amazonSqs.listQueues().getQueueUrls().toString(),"}");
 
         List<Message> messageList = this.getQueueMessageByQueueUrl(queueUrl);
 

@@ -1,4 +1,4 @@
-package com.mj.aws.lambda.sqs;
+package com.pega.aws.lambda.sqs;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 //@SpringBootTest
 public class AwsLambdaSqsApplicationTests {
 
-//	@Test
+	// @Test
 	public void contextLoads() {
 	}
 

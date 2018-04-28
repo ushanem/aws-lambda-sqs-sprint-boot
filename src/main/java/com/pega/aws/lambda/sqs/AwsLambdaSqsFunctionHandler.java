@@ -1,4 +1,4 @@
-package com.mj.aws.lambda.sqs;
+package com.pega.aws.lambda.sqs;
 
 import org.springframework.cloud.function.adapter.aws.SpringBootRequestHandler;
 

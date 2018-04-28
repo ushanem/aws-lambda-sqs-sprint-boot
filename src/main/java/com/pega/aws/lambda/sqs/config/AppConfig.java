@@ -1,4 +1,4 @@
-package com.mj.aws.lambda.sqs.config;
+package com.pega.aws.lambda.sqs.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,5 +12,10 @@ public class AppConfig {
 
     @Value("${aws.sqs.queue.url}")
     private String queueUrl;
+
+	public String getQueueUrl() {
+		// TODO Auto-generated method stub
+		return queueUrl;
+	}
 
 }
