@@ -31,18 +31,47 @@ public class AwsLambdaSqsFunction implements Function<Void,Void>{
     public Void apply(Void empty) {
 
         String queueUrl = appConfig.getQueueUrl();
+        String dlqUrl = appConfig.getDLQueueUrl();
+        //String defenderQueueURL = appConfig.getDefenderQueueURL();
 
-        log.info("Retrieved queues: {",amazonSqs.listQueues().getQueueUrls().toString(),"}");
+        log.info("Retrieved queues: {}",amazonSqs.listQueues().getQueueUrls().toString());
 
         List<Message> messageList = this.getQueueMessageByQueueUrl(queueUrl);
 
         for (Message message : messageList) {
-            log.info("Received message: {}", message.toString());
+        	boolean isSuccessful=false;
+            log.info("~~~~~~~~~~Read message#", messageList.indexOf(message)," - ",message.toString());
+            isSuccessful = this.ingestAlert(message);
+            if(!isSuccessful) {
+            	this.sendMessageToDLQueue(dlqUrl,message);
+            }
         }
-
         this.deleteMessagesByQueueUrl(messageList,queueUrl);
-
         return empty;
+    }
+
+    private boolean ingestAlert(Message message) {
+    	boolean success = false;
+
+    	//add steps to parse the JSON
+    	//replace below code with logic checking for value of the defenderAlertType key and setting it into the temp string
+
+    	String strMessage = message.toString();
+    	int intStart = strMessage.indexOf("\"defenderAlertType\":\"");
+    	int intEnd = strMessage.indexOf(",",intStart+21);
+    	String strDefenderAlertType = strMessage.substring(intStart+21,intEnd-2);
+
+    	switch(strDefenderAlertType) {
+    	   case "CUSTOMERALERT" :
+    		   log.info("-----------Pega URL invoked----------");
+    		   success = true;
+    		   //Add Logic to invoke AcctOpen URL
+     	      break; 
+    	   default : // Optional
+    	      // Add logic to invoke the transactionAlert URL
+    		   log.info("********Alert type NOT Defined:",strDefenderAlertType," - Pega URL Not Found*******");
+    	}
+    	return success;
     }
 
     private void deleteMessagesByQueueUrl(List<Message> messageList, String queueUrl) {
@@ -73,7 +102,7 @@ public class AwsLambdaSqsFunction implements Function<Void,Void>{
         log.info("Getting messages from queue url: {}", queueUrl);
 
         ReceiveMessageRequest messageRequest = new ReceiveMessageRequest(queueUrl).
-                withWaitTimeSeconds(5).withMaxNumberOfMessages(2);
+                withWaitTimeSeconds(180);
 
         List<Message> messages = amazonSqs.receiveMessage(messageRequest).getMessages();
 
@@ -81,6 +110,16 @@ public class AwsLambdaSqsFunction implements Function<Void,Void>{
 
         return messages;
     }
+    
+    private void sendMessageToDLQueue(String dlqueueUrl, Message message) {
 
+    	MessageAttributeValue value = new MessageAttributeValue();
+    	value.setStringValue("0");
+    	message.addMessageAttributesEntry("retryCount", value);
+    	SendMessageRequest messageRequest = new SendMessageRequest();
+    	messageRequest.setMessageBody(message.getBody());
+    	messageRequest.setQueueUrl(dlqueueUrl);
 
+        log.info("************Message written to DLQ:", message.toString());
+    }
 }
